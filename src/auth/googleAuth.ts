@@ -1,44 +1,58 @@
-export interface GoogleUser{
-    id:number,
-    email : string,
-    name : string,
-    avatar : string,
-}
-
-type GoogleCredentialResponse = {
-  credential: string;
+export type GoogleUser = {
+  id: string;
+  name: string;
+  email: string;
+  picture: string;
 };
 
 const CLIENT_ID = import.meta.env.VITE_GOOGLE_CLIENT_ID as string;
 
-let initialized = false;
+export function loadGoogleSDK(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    if (window.google?.accounts?.id) {
+      resolve();
+      return;
+    }
 
-export function loadGoogleSDK():Promise<void>{
-    if(initialized) return  Promise.resolve();
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
 
-    return new Promise((resolve)=>{
-        const script = document.createElement("script");
-        script.src = "https://accounts.google.com/gsi/client";
-        script.async = true;
-        script.defer = true;
-        script.onload = () =>{
-            initialized = true;
-            resolve();
-        }
+    script.onload = () => resolve();
+    script.onerror = () =>
+      reject(new Error("Failed to load Google Identity SDK"));
 
-        document.body.appendChild(script)
-    })
+    document.head.appendChild(script);
+  });
 }
 
-export async function initGoogleLogin(onSuccess:(user:GoogleUser)=>void) {
-    await loadGoogleSDK();
-    window.google.accounts.id.initialize({
-        client_id : CLIENT_ID,
-        callback : (response:GoogleCredentialResponse)=>{
-            const user = decodeJwt(response.credential);
-            onSuccess(user)
-        }
-    })
+let initialized = false;
+
+export async function initGoogle(
+  onSuccess: (user: GoogleUser) => void
+) {
+  if (initialized) return; // 🚨 prevent re-init
+  initialized = true;
+
+  await loadGoogleSDK();
+
+  window.google.accounts.id.initialize({
+    client_id: CLIENT_ID,
+    callback: (response) => {
+      console.log("GOOGLE CREDENTIAL RECEIVED");
+
+      const payload = JSON.parse(atob(response.credential.split(".")[1]));
+
+      onSuccess({
+        id: payload.sub,
+        name: payload.name,
+        email: payload.email,
+        picture: payload.picture,
+      });
+    },
+    use_fedcm_for_prompt: false,
+  });
 }
 
 export function promptGoogleLogin() {
@@ -47,14 +61,4 @@ export function promptGoogleLogin() {
 
 export function logoutGoogle() {
   localStorage.removeItem("gmail_clone_user");
-}
-
-function decodeJwt(token: string): GoogleUser {
-  const payload = JSON.parse(atob(token.split(".")[1]));
-  return {
-    id: payload.sub,
-    name: payload.name,
-    email: payload.email,
-    avatar: payload.avatar,
-  };
 }

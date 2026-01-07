@@ -1,42 +1,54 @@
-import { useEffect,createContext,useState } from "react"
-import {type GoogleUser,initGoogleLogin,logoutGoogle} from "./googleAuth"
+import { createContext, useEffect, useRef, useState } from "react";
+import {
+  type GoogleUser,
+  initGoogle,
+  promptGoogleLogin,
+  logoutGoogle,
+} from "./googleAuth";
 
-type AuthType={
-    user:GoogleUser | null,
-    login : ()=> void,
-    logout : ()=>void,
-    loading :  boolean
-}
+type AuthType = {
+  user: GoogleUser | null;
+  login: () => void;
+  logout: () => void;
+};
 
 // eslint-disable-next-line react-refresh/only-export-components
-export const AuthContext = createContext<AuthType|null>(null)
+export const AuthContext = createContext<AuthType | null>(null);
 
-const AuthProvider = ({children}:{children:React.ReactNode}) => {
-    const [user,setUser] = useState<GoogleUser|null>(null);
-    const [loading,setLoading] = useState(true);
+const AuthProvider = ({ children }: { children: React.ReactNode }) => {
+  const [user, setUser] = useState<GoogleUser | null>(() => {
+    const saved = localStorage.getItem("gmail_clone_user");
+    return saved ? JSON.parse(saved) : null;
+  });
 
-    useEffect(() => {
-  initGoogleLogin((googleUser) => {
-    localStorage.setItem("gmail_clone_user", JSON.stringify(googleUser));
-    setUser(googleUser);
-  }).finally(() => setLoading(false));
-}, []);
+  const initializedRef = useRef(false);
 
+  useEffect(() => {
+    if (initializedRef.current) return;
+    initializedRef.current = true;
 
-    const login = () =>{
-        window.google.accounts.id.prompt();
-    }
-    const logout=()=>{
-        logoutGoogle()
-        setUser(null)
-    }
+    initGoogle((googleUser) => {
+      console.log("AUTH USER:", googleUser);
+      localStorage.setItem("gmail_clone_user", JSON.stringify(googleUser));
+      setUser(googleUser);
+    });
+  }, []);
+
+  const login = () => {
+    console.log("LOGIN CLICKED");
+    promptGoogleLogin();
+  };
+
+  const logout = () => {
+    logoutGoogle();
+    setUser(null);
+  };
 
   return (
-    <AuthContext.Provider value={{user,login,logout,loading}}>
+    <AuthContext.Provider value={{ user, login, logout }}>
       {children}
-      
     </AuthContext.Provider>
-  )
-}
+  );
+};
 
-export default AuthProvider
+export default AuthProvider;
