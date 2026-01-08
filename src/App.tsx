@@ -1,20 +1,27 @@
-import { Dashboard } from "./components/Dashboard"
+import {Login} from "./components/Login"
+import {Signup} from "./components/Signup"
 import {BrowserRouter,Routes,Route} from "react-router-dom"
-import Login from "./components/Login"
 import AuthProvider from "./auth/AuthProvider"
+import Dashboard from "./components/Dashboard"
+import { Protected } from "./components/Protected"
+import { PublicRoute } from "./components/PublicRoute"
 
 const App = () => {
   return (
-    <BrowserRouter>
-      <AuthProvider>
-
-      <Routes>
-        <Route path="/mail" element={<Dashboard/>}/>
-        <Route path="/login" element={<Login/>}/>
-        <Route path="/" element={<Login/>}/>
-      </Routes>
-      </AuthProvider>
-    </BrowserRouter>
+    <AuthProvider>
+      <BrowserRouter>
+        <Routes>
+          <Route element={<PublicRoute/>}>
+            <Route path="/login" element={<Login/>}/>
+            <Route path="/" element={<Login/>}/>
+            <Route path="/signup" element={<Signup/>}/>
+          </Route>
+          <Route element={<Protected/>}>
+            <Route path="/dashboard" element={<Dashboard/>}/>
+          </Route>
+        </Routes>
+      </BrowserRouter>
+    </AuthProvider>
   )
 }
 

@@ -1,9 +1,14 @@
-import { useAuth } from "../auth/useAuth"
+import { useProvider } from "../auth/AuthProvider"
 
-export const Dashboard = () => {
-  const { user } = useAuth();
 
-  console.log("AUTH USER:", user);
+const Dashboard = () => {
+    const {logout} = useProvider()
+  return (
+    <div>
+      <h1>Hey there Welcome to email client</h1>
+      <button className="border p-3 rounded" onClick={()=>{logout()}}>Logout</button>
+    </div>
+  )
+}
 
-  return <div>welcome {user?.email}</div>;
-};
+export default Dashboard

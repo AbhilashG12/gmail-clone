@@ -1,54 +1,44 @@
-import { createContext, useEffect, useRef, useState } from "react";
-import {
-  type GoogleUser,
-  initGoogle,
-  promptGoogleLogin,
-  logoutGoogle,
-} from "./googleAuth";
+import { useContext,createContext, useState } from "react"
 
-type AuthType = {
-  user: GoogleUser | null;
-  login: () => void;
-  logout: () => void;
-};
+interface ContextType {
+    isAuthenticated : boolean,
+    login : (token:string)=>void,
+    logout : ()=>void,
+}
 
 // eslint-disable-next-line react-refresh/only-export-components
-export const AuthContext = createContext<AuthType | null>(null);
+export const AuthContext = createContext<ContextType|undefined>(undefined)
 
-const AuthProvider = ({ children }: { children: React.ReactNode }) => {
-  const [user, setUser] = useState<GoogleUser | null>(() => {
-    const saved = localStorage.getItem("gmail_clone_user");
-    return saved ? JSON.parse(saved) : null;
-  });
+const AuthProvider = ({children}:{children:React.ReactNode}) => {
 
-  const initializedRef = useRef(false);
+  const [isAuthenticated,setAuth] = useState<boolean>(()=>{
+      const savedToken = localStorage.getItem("authToken");
+      return !!savedToken
+  })
 
-  useEffect(() => {
-    if (initializedRef.current) return;
-    initializedRef.current = true;
-
-    initGoogle((googleUser) => {
-      console.log("AUTH USER:", googleUser);
-      localStorage.setItem("gmail_clone_user", JSON.stringify(googleUser));
-      setUser(googleUser);
-    });
-  }, []);
-
-  const login = () => {
-    console.log("LOGIN CLICKED");
-    promptGoogleLogin();
-  };
-
-  const logout = () => {
-    logoutGoogle();
-    setUser(null);
-  };
+  const login=(token:string)=>{
+      localStorage.setItem("authToken",token)
+      setAuth(true)
+  }
+  const logout=()=>{
+      localStorage.removeItem("authToken")
+      setAuth(false)
+  }
 
   return (
-    <AuthContext.Provider value={{ user, login, logout }}>
+    <AuthContext.Provider value={{isAuthenticated,login,logout}}>
       {children}
     </AuthContext.Provider>
-  );
-};
+  )
+}
 
-export default AuthProvider;
+// eslint-disable-next-line react-refresh/only-export-components
+export const useProvider=()=>{
+  const ctx = useContext(AuthContext) 
+  if(!ctx){
+    throw new Error("must be used inside the provider")
+  }
+  return ctx
+}
+
+export default AuthProvider
