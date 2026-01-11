@@ -1,14 +1,27 @@
-import { useProvider } from "../auth/AuthProvider"
-
+import { useState } from "react";
+import Inbox from "./Inbox";
+import Layout from "./Layout";
+import Search from "./Search";
 
 const Dashboard = () => {
-    const {logout} = useProvider()
-  return (
-    <div>
-      <h1>Hey there Welcome to email client</h1>
-      <button className="border p-3 rounded" onClick={()=>{logout()}}>Logout</button>
-    </div>
-  )
-}
+  const [currentTab, setCurrentTab] = useState("inbox");
 
-export default Dashboard
+  return (
+    <Layout currentTab={currentTab} onTabChange={setCurrentTab}>
+      
+      {/* Search Bar Area */}
+      <div className="w-full">
+         <Search />
+      </div>
+
+      {/* Main Content Area */}
+      {/* FIX: Use p-6 here instead of margins on the child */}
+      <div className="flex-1 overflow-hidden p-6 w-full"> 
+         <Inbox />
+      </div>
+
+    </Layout>
+  );
+};
+
+export default Dashboard;
