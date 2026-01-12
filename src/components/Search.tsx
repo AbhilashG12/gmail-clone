@@ -13,6 +13,7 @@ const Search = () => {
         onClick={() => setIsOpen(!isOpen)} 
       />
       <input
+        
         type="search"
         placeholder="Search for a mail"
         className={`
