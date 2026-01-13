@@ -1,29 +1,64 @@
-import {useForm,type SubmitHandler} from "react-hook-form";
+import { useForm, type SubmitHandler } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import {signupSchema,loginSchema,type SignupFormData,type LoginFormData} from "./schema"
+import { useNavigate } from "react-router-dom"; 
+import { signupSchema, loginSchema, type SignupFormData, type LoginFormData } from "./schema";
+import { useProvider } from "./AuthProvider"; 
+import {users} from "../data/users"
+export const useSignup = () => {
+  const { login } = useProvider();
+  const navigate = useNavigate(); 
 
-export const useSignup=()=>{
-    const form = useForm<SignupFormData>({
-        resolver : zodResolver(signupSchema),
-        mode : "onBlur"
-    });
-    const handleSignup:SubmitHandler<SignupFormData>=async(data)=>{
-        await new Promise((resolve)=>{setTimeout(resolve,1000)})
-        console.log("Signup completed",data)
+  const form = useForm<SignupFormData>({
+    resolver: zodResolver(signupSchema),
+    mode: "onBlur"
+  });
+
+  const handleSignup: SubmitHandler<SignupFormData> = async (data) => {
+    await new Promise((resolve) => { setTimeout(resolve, 1000) });
+    
+    const fakeToken = "abc-123-xyz";
+    const userData = { username: data.username, email: data.email };
+
+    login(fakeToken, userData);
+    navigate("/login"); 
+  };
+
+  return { form, handleSignup };
+};
+
+export const useLogin = () => {
+  const { login } = useProvider();
+  const navigate = useNavigate();
+
+  const form = useForm<LoginFormData>({
+    resolver: zodResolver(loginSchema),
+  });
+
+  const handleLogin: SubmitHandler<LoginFormData> = async (data) => {
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    const foundUser = users.find(u => u.email === data.email);
+
+    if (foundUser) {
+        const userData = { 
+            username: foundUser.username,
+            email: foundUser.email 
+        };
+        
+        console.log("Found User:", userData);
+        login("mock-token-123", userData);
+        navigate("/dashboard");
+    } else {
+        console.warn("User not in dummy DB, logging in as Guest...");
+        
+        const guestData = {
+             username: "Guest User", 
+             email: data.email 
+        };
+        login("guest-token", guestData);
+        navigate("/dashboard");
     }
+  };
 
-    return {form,handleSignup}
-
-}
-
-export const useLogin=()=>{
-    const form = useForm<LoginFormData>({
-        resolver : zodResolver(loginSchema),
-    })
-    const handleLogin:SubmitHandler<LoginFormData>=async(data)=>{
-        await new Promise((resolve)=>setTimeout(resolve,1000))
-        console.log("Login Successful",data)
-    }
-
-    return {form,handleLogin}
-}
+  return { form, handleLogin };
+};

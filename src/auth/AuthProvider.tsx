@@ -1,9 +1,15 @@
-import { useContext,createContext, useState } from "react"
+import { useContext, createContext, useState } from "react"
+
+export interface User {
+    username?: string;
+    email: string;
+}
 
 interface ContextType {
-    isAuthenticated : boolean,
-    login : (token:string)=>void,
-    logout : ()=>void,
+    user: User | null;
+    isAuthenticated: boolean;
+    login: (token: string, userData: User) => void;
+    logout: () => void;
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
@@ -11,29 +17,48 @@ export const AuthContext = createContext<ContextType|undefined>(undefined)
 
 const AuthProvider = ({children}:{children:React.ReactNode}) => {
 
-  const [isAuthenticated,setAuth] = useState<boolean>(()=>{
-      const savedToken = localStorage.getItem("authToken");
-      return !!savedToken
-  })
+  const [user, setUser] = useState<User | null>(() => {
+      try {
+          const savedUser = localStorage.getItem("authUser");
+          if (!savedUser || savedUser === "undefined" || savedUser === "null") {
+              return null;
+          }
+          return JSON.parse(savedUser);
+      } catch (error) {
+          console.error("Found corrupt data, clearing...", error);
+          localStorage.removeItem("authUser");
+          return null;
+      }
+  });
 
-  const login=(token:string)=>{
-      localStorage.setItem("authToken",token)
-      setAuth(true)
+  const isAuthenticated = !!user;
+
+  const login = (token: string, userData: User) => {
+      localStorage.setItem("authToken", token);
+      
+      if (userData) {
+        localStorage.setItem("authUser", JSON.stringify(userData));
+        setUser(userData);
+      } else {
+        console.error("Attempted to login with invalid user data");
+      }
   }
-  const logout=()=>{
-      localStorage.removeItem("authToken")
-      setAuth(false)
+
+  const logout = () => {
+      localStorage.removeItem("authToken");
+      localStorage.removeItem("authUser");
+      setUser(null);
   }
 
   return (
-    <AuthContext.Provider value={{isAuthenticated,login,logout}}>
+    <AuthContext.Provider value={{ user, isAuthenticated, login, logout }}>
       {children}
     </AuthContext.Provider>
   )
 }
 
 // eslint-disable-next-line react-refresh/only-export-components
-export const useProvider=()=>{
+export const useProvider = () => {
   const ctx = useContext(AuthContext) 
   if(!ctx){
     throw new Error("must be used inside the provider")

@@ -3,8 +3,8 @@ import {Signup} from "./components/Signup"
 import {BrowserRouter,Routes,Route} from "react-router-dom"
 import AuthProvider from "./auth/AuthProvider"
 import Dashboard from "./components/Dashboard"
-import { Protected } from "./components/Protected"
-import { PublicRoute } from "./components/PublicRoute"
+import { Protected } from "./routes/Protected"
+import { PublicRoute } from "./routes/PublicRoute"
 
 const App = () => {
   return (

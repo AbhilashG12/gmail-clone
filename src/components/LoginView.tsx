@@ -50,7 +50,7 @@ export const LoginView: React.FC<LoginViewProps> = ({ form, onSubmit }) => {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full px-4 py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-blue-300"
+            className="w-full px-4 cursor-pointer py-2 text-white bg-blue-600 rounded-md hover:bg-blue-700 disabled:bg-blue-300"
           >
             {isSubmitting ? "Logging in..." : "Login"}
           </button>

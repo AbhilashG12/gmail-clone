@@ -113,7 +113,6 @@ const Item = ({ id, icon, label, onClick }: ItemProps) => {
   );
 };
 
-// 5. Sub-Component: Toggle Button
 const Toggle = () => {
   const context = useContext(SidebarContext);
   if (!context) throw new Error("Sidebar.Toggle must be used within Sidebar");
@@ -123,7 +122,7 @@ const Toggle = () => {
     <div className="mt-auto p-4 border-t border-blue-300/50 flex justify-end">
       <button
         onClick={toggle}
-        className="p-2 rounded-lg bg-blue-300/50 hover:bg-blue-400/50 text-slate-800 transition-colors"
+        className="p-2 rounded-lg cursor-pointer bg-blue-300/50 hover:bg-blue-400/50 text-slate-800 transition-colors"
       >
         {isOpen ? <FiChevronLeft size={20} /> : <FiChevronRight size={20} />}
       </button>
@@ -131,7 +130,6 @@ const Toggle = () => {
   );
 };
 
-// 6. Assign sub-components
 Sidebar.Logo = Logo;
 Sidebar.Item = Item;
 Sidebar.Toggle = Toggle;
