@@ -15,12 +15,26 @@ export const useSignup = () => {
 
   const handleSignup: SubmitHandler<SignupFormData> = async (data) => {
     await new Promise((resolve) => { setTimeout(resolve, 1000) });
+    const existingUser = users.find(u => u.email === data.email);
     
-    const fakeToken = "abc-123-xyz";
-    const userData = { username: data.username, email: data.email };
+    if (existingUser) {
+        form.setError("email", { 
+            type: "manual", 
+            message: "User already exists in dummy database" 
+        });
+        return; 
+    }
+    const fakeToken = "new-user-token-abc";
 
+    const userData = { 
+        username: data.username, 
+        email: data.email 
+    };
+
+    console.log("Creating new user:", userData);
+    
     login(fakeToken, userData);
-    navigate("/login"); 
+    navigate("/dashboard"); 
   };
 
   return { form, handleSignup };
