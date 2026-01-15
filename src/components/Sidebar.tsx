@@ -1,7 +1,6 @@
 import React, { createContext, useContext, useState } from "react";
 import { FiChevronLeft, FiChevronRight } from "react-icons/fi"; 
 
-// 1. Context (Unchanged)
 interface SidebarContextType {
   isOpen: boolean;
   toggle: () => void;
@@ -11,7 +10,6 @@ interface SidebarContextType {
 
 const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 
-// 2. The Parent Wrapper
 interface SidebarProps {
   children: React.ReactNode;
   defaultActive?: string;
@@ -30,14 +28,7 @@ export const Sidebar = ({ children, defaultActive = "1" }: SidebarProps) => {
           h-screen shadow-xl 
           transition-all duration-300 ease-in-out flex flex-col z-20
           ${isOpen ? "w-64" : "w-20"}
-          
-          /* --- THEME CHANGES --- */
-          /* Background matches your theme */
-          bg-[#b2d5ee] 
-          /* Text is now dark slate for contrast against light blue */
-          text-slate-800 
-          /* Subtle border to separate sidebar from main content */
-          border-r border-blue-300/50
+          bg-white/60 backdrop-blur-xl text-slate-800 border-r border-white/40
         `}
       >
         {children}
@@ -46,14 +37,13 @@ export const Sidebar = ({ children, defaultActive = "1" }: SidebarProps) => {
   );
 };
 
-// 3. Sub-Component: Logo
 const Logo = ({ children, icon }: { children: React.ReactNode; icon: React.ReactNode }) => {
   const context = useContext(SidebarContext);
   if (!context) throw new Error("Sidebar.Logo must be used within Sidebar");
   const { isOpen } = context;
 
   return (
-    <div className="h-20 flex items-center justify-center border-b border-blue-300/50">
+    <div className="h-20 flex items-center justify-center border-b border-white/40">
       <div className="text-2xl text-blue-700 p-2">{icon}</div>
       <div
         className={`overflow-hidden transition-all duration-300 ${
@@ -66,7 +56,6 @@ const Logo = ({ children, icon }: { children: React.ReactNode; icon: React.React
   );
 };
 
-// 4. Sub-Component: Item
 interface ItemProps {
   id: string;
   icon: React.ReactNode;
@@ -93,11 +82,9 @@ const Item = ({ id, icon, label, onClick }: ItemProps) => {
         flex items-center p-3 cursor-pointer my-1 mx-2 rounded-lg
         transition-colors duration-200
         ${!isOpen ? "justify-center" : ""}
-
-        /* --- ITEM THEME CHANGES --- */
         ${isActive 
-          ? "bg-blue-600 text-white shadow-md" // Active: Dark blue bg, white text
-          : "text-slate-600 hover:bg-blue-400/20 hover:text-slate-900" // Inactive: Slate text, subtle hover
+          ? "bg-blue-600/90 text-white shadow-md backdrop-blur-sm" 
+          : "text-slate-700 hover:bg-white/40 hover:text-slate-900" 
         }
       `}
     >
@@ -119,10 +106,10 @@ const Toggle = () => {
   const { isOpen, toggle } = context;
 
   return (
-    <div className="mt-auto p-4 border-t border-blue-300/50 flex justify-end">
+    <div className="mt-auto p-4 border-t border-white/40 flex justify-end">
       <button
         onClick={toggle}
-        className="p-2 rounded-lg cursor-pointer bg-blue-300/50 hover:bg-blue-400/50 text-slate-800 transition-colors"
+        className="p-2 rounded-lg cursor-pointer bg-white/40 hover:bg-white/60 text-slate-800 transition-colors shadow-sm"
       >
         {isOpen ? <FiChevronLeft size={20} /> : <FiChevronRight size={20} />}
       </button>

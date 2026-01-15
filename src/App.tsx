@@ -5,8 +5,10 @@ import AuthProvider from "./auth/AuthProvider"
 import Dashboard from "./components/Dashboard"
 import { Protected } from "./routes/Protected"
 import { PublicRoute } from "./routes/PublicRoute"
+import {useThemeEffect} from "./hooks/useTheme"
 
 const App = () => {
+  useThemeEffect();
   return (
     <AuthProvider>
       <BrowserRouter>

@@ -3,6 +3,8 @@ import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
 import { type Email } from "../data/emails"; 
 import { FiStar, FiChevronLeft, FiChevronRight } from "react-icons/fi";
 import { hugeEmails } from "../data/generateEmails";
+import { useSettingsStore } from "../store/useSettingsStore"; 
+import { useSearchStore } from "../store/useSearchStore";
 
 interface RowProps {
   email: Email; 
@@ -64,20 +66,42 @@ const Row = memo(({ email }: RowProps) => {
   );
 });
 
-const ITEMS_PER_PAGE = 100;
-
 const Inbox = () => {
   const [page, setPage] = useState(1);
   const virtuosoRef = useRef<VirtuosoHandle>(null);
   
-  const totalItems = hugeEmails.length;
-  const totalPages = Math.ceil(totalItems / ITEMS_PER_PAGE);
+  const { density, itemsPerPage } = useSettingsStore();
+  const { query } = useSearchStore();
+
+  const filteredEmails = useMemo(() => {
+    if (!query) return hugeEmails;
+    
+    const lowerQuery = query.toLowerCase();
+    return hugeEmails.filter(email => 
+      email.subject.toLowerCase().includes(lowerQuery) ||
+      email.sender.toLowerCase().includes(lowerQuery) ||
+      email.body.toLowerCase().includes(lowerQuery)
+    );
+  }, [query]);
+
+  const [prevItemsPerPage, setPrevItemsPerPage] = useState(itemsPerPage);
+  const [prevQuery, setPrevQuery] = useState(query);
+  
+  if (itemsPerPage !== prevItemsPerPage || query !== prevQuery) {
+    setPrevItemsPerPage(itemsPerPage);
+    setPrevQuery(query);
+    setPage(1);
+  }
+
+  const itemHeight = density === 'comfortable' ? 72 : 48;
+  const totalItems = filteredEmails.length;
+  const totalPages = Math.ceil(totalItems / itemsPerPage);
 
   const currentData = useMemo(() => {
-    const start = (page - 1) * ITEMS_PER_PAGE;
-    const end = start + ITEMS_PER_PAGE;
-    return hugeEmails.slice(start, end);
-  }, [page]);
+    const start = (page - 1) * itemsPerPage;
+    const end = start + itemsPerPage;
+    return filteredEmails.slice(start, end);
+  }, [page, itemsPerPage, filteredEmails]);
 
   useEffect(() => {
     virtuosoRef.current?.scrollTo({ top: 0 });
@@ -87,49 +111,59 @@ const Inbox = () => {
   const handlePrev = () => setPage((p) => Math.max(p - 1, 1));
 
   return (
-    <div className="h-full w-full bg-gray-50/50 rounded-2xl shadow-sm overflow-hidden flex flex-col font-sans">
+    <div className="h-full w-full bg-white/80 backdrop-blur-md rounded-2xl shadow-sm overflow-hidden flex flex-col font-sans border border-white/50">
       
-      <div className="px-6 py-4 flex justify-between items-center bg-white border-b border-gray-100 z-10 h-16">
-        <h2 className="text-xl font-bold text-gray-800">Inbox</h2>
-        <span className="text-sm font-medium text-gray-500 bg-gray-100 px-3 py-1 rounded-full">
-          {((page - 1) * ITEMS_PER_PAGE) + 1}-{Math.min(page * ITEMS_PER_PAGE, totalItems)} of {totalItems}
+      <div className="px-6 py-4 flex justify-between items-center bg-white/50 border-b border-gray-100/50 z-10 h-16">
+        <h2 className="text-xl font-bold text-gray-800">
+          {query ? `Search: "${query}"` : "Inbox"}
+        </h2>
+        <span className="text-sm font-medium text-gray-500 bg-white/50 px-3 py-1 rounded-full">
+           {totalItems === 0 ? "0 items" : 
+             `${((page - 1) * itemsPerPage) + 1}-${Math.min(page * itemsPerPage, totalItems)} of {totalItems}`
+           }
         </span>
       </div>
 
       <div className="flex-1 px-2 pt-2">
-        <Virtuoso
-          ref={virtuosoRef}
-          style={{ height: '100%', width: '100%' }}
-          data={currentData}
-          totalCount={currentData.length}
-          itemContent={(_, email) => (
-            <div style={{ height: '72px' }}>
-              <Row email={email} />
+        {totalItems === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full text-gray-500">
+                <p>No emails found matching "{query}"</p>
             </div>
-          )}
-          overscan={20}
-          className="scrollbar-hide"
-        />
+        ) : (
+            <Virtuoso
+              ref={virtuosoRef}
+              style={{ height: '100%', width: '100%' }}
+              data={currentData}
+              totalCount={currentData.length}
+              itemContent={(_, email) => (
+                <div style={{ height: `${itemHeight}px` }}>
+                  <Row email={email} />
+                </div>
+              )}
+              overscan={20}
+              className="scrollbar-hide"
+            />
+        )}
       </div>
 
-      <div className="px-6 py-3 bg-white border-t border-gray-100 flex justify-between items-center">
+      <div className="px-6 py-3 bg-white/50 border-t border-gray-100/50 flex justify-between items-center">
         <span className="text-sm text-gray-500 font-medium">
-          Page <span className="text-gray-900">{page}</span> of {totalPages}
+          Page <span className="text-gray-900">{page}</span> of {totalPages || 1}
         </span>
         
         <div className="flex space-x-2">
           <button 
             onClick={handlePrev} 
             disabled={page === 1}
-            className="p-2 rounded-lg hover:bg-gray-100 active:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-gray-600"
+            className="p-2 rounded-lg hover:bg-white/50 active:bg-white/80 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-gray-600"
           >
             <FiChevronLeft size={20} />
           </button>
           
           <button 
             onClick={handleNext} 
-            disabled={page === totalPages}
-            className="p-2 rounded-lg hover:bg-gray-100 active:bg-gray-200 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-gray-600"
+            disabled={page === totalPages || totalPages === 0}
+            className="p-2 rounded-lg hover:bg-white/50 active:bg-white/80 disabled:opacity-30 disabled:cursor-not-allowed transition-colors text-gray-600"
           >
             <FiChevronRight size={20} />
           </button>
