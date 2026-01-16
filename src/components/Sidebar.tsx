@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState } from "react";
-import { FiChevronLeft, FiChevronRight } from "react-icons/fi"; 
+import { FiChevronLeft, FiChevronRight, FiEdit3 } from "react-icons/fi"; 
 
 interface SidebarContextType {
   isOpen: boolean;
@@ -15,7 +15,7 @@ interface SidebarProps {
   defaultActive?: string;
 }
 
-export const Sidebar = ({ children, defaultActive = "1" }: SidebarProps) => {
+export const Sidebar = ({ children, defaultActive = "inbox" }: SidebarProps) => {
   const [isOpen, setIsOpen] = useState(true);
   const [activeItem, setActiveItem] = useState(defaultActive);
 
@@ -25,10 +25,10 @@ export const Sidebar = ({ children, defaultActive = "1" }: SidebarProps) => {
     <SidebarContext.Provider value={{ isOpen, toggle, activeItem, setActiveItem }}>
       <aside
         className={`
-          h-screen shadow-xl 
-          transition-all duration-300 ease-in-out flex flex-col z-20
+          h-screen shadow-2xl z-50
+          transition-all duration-300 ease-in-out flex flex-col 
           ${isOpen ? "w-64" : "w-20"}
-          bg-white/60 backdrop-blur-xl text-slate-800 border-r border-white/40
+          bg-white/70 backdrop-blur-xl border-r border-white/50
         `}
       >
         {children}
@@ -37,33 +37,68 @@ export const Sidebar = ({ children, defaultActive = "1" }: SidebarProps) => {
   );
 };
 
+// --- LOGO COMPONENT ---
 const Logo = ({ children, icon }: { children: React.ReactNode; icon: React.ReactNode }) => {
   const context = useContext(SidebarContext);
   if (!context) throw new Error("Sidebar.Logo must be used within Sidebar");
   const { isOpen } = context;
 
   return (
-    <div className="h-20 flex items-center justify-center border-b border-white/40">
-      <div className="text-2xl text-blue-700 p-2">{icon}</div>
+    <div className="h-20 flex items-center px-6 border-b border-gray-100/50">
+      <div className="text-3xl text-blue-600 min-w-8 flex justify-center">{icon}</div>
       <div
-        className={`overflow-hidden transition-all duration-300 ${
-          isOpen ? "w-auto opacity-100 ml-2" : "w-0 opacity-0"
-        }`}
+        className={`
+           overflow-hidden transition-all duration-300 ease-in-out
+           ${isOpen ? "max-w-50 opacity-100 ml-3" : "max-w-0 opacity-0 ml-0"}
+        `}
       >
-        <span className="font-bold text-xl whitespace-nowrap text-slate-800">{children}</span>
+        <span className="font-bold text-xl whitespace-nowrap text-slate-800 tracking-tight">{children}</span>
       </div>
     </div>
   );
 };
 
+// --- NEW: COMPOSE BUTTON ---
+const Compose = ({ onClick }: { onClick?: () => void }) => {
+  const context = useContext(SidebarContext);
+  if (!context) throw new Error("Sidebar.Compose must be used within Sidebar");
+  const { isOpen } = context;
+
+  return (
+    <div className="p-4 border-b border-gray-100/50">
+        <button
+          onClick={onClick}
+          className={`
+            flex items-center justify-center rounded-2xl shadow-lg 
+            transition-all duration-300 ease-in-out cursor-pointer
+            bg-blue-600 hover:bg-blue-700 text-white
+            ${isOpen ? "w-full h-12 px-4" : "w-12 h-12 rounded-full"}
+          `}
+        >
+            <FiEdit3 size={isOpen ? 20 : 24} />
+            <div
+                className={`
+                    overflow-hidden transition-all duration-300 ease-in-out
+                    ${isOpen ? "max-w-50 opacity-100 ml-2" : "max-w-0 opacity-0 ml-0"}
+                `}
+            >
+                <span className="font-bold whitespace-nowrap">Compose</span>
+            </div>
+        </button>
+    </div>
+  );
+};
+
+// --- ITEM COMPONENT ---
 interface ItemProps {
   id: string;
   icon: React.ReactNode;
   label: string;
+  count?: number; // Optional badge count
   onClick?: () => void;
 }
 
-const Item = ({ id, icon, label, onClick }: ItemProps) => {
+const Item = ({ id, icon, label, count, onClick }: ItemProps) => {
   const context = useContext(SidebarContext);
   if (!context) throw new Error("Sidebar.Item must be used within Sidebar");
   const { isOpen, activeItem, setActiveItem } = context;
@@ -79,37 +114,46 @@ const Item = ({ id, icon, label, onClick }: ItemProps) => {
     <div
       onClick={handleClick}
       className={`
-        flex items-center p-3 cursor-pointer my-1 mx-2 rounded-lg
-        transition-colors duration-200
-        ${!isOpen ? "justify-center" : ""}
+        group flex items-center px-4 py-3 cursor-pointer mx-3 rounded-xl mb-1
+        transition-all duration-200 ease-out
         ${isActive 
-          ? "bg-blue-600/90 text-white shadow-md backdrop-blur-sm" 
-          : "text-slate-700 hover:bg-white/40 hover:text-slate-900" 
+          ? "bg-blue-100/80 text-blue-700 font-semibold shadow-sm" 
+          : "text-slate-600 hover:bg-white/60 hover:text-slate-900" 
         }
       `}
     >
-      <div className="text-xl min-w-5">{icon}</div>
+      <div className={`text-xl flex items-center justify-center transition-transform duration-200 ${isActive ? "scale-110" : "group-hover:scale-110"}`}>
+        {icon}
+      </div>
+      
       <div
-        className={`overflow-hidden transition-all duration-300 ${
-          isOpen ? "w-auto opacity-100 ml-4" : "w-0 opacity-0"
-        }`}
+        className={`
+          flex items-center justify-between overflow-hidden transition-all duration-300 ease-in-out
+          ${isOpen ? "max-w-50 opacity-100 ml-4 flex-1" : "max-w-0 opacity-0 ml-0"}
+        `}
       >
-        <span className="whitespace-nowrap font-medium">{label}</span>
+        <span className="whitespace-nowrap text-sm">{label}</span>
+        {count !== undefined && count > 0 && (
+             <span className="text-xs font-bold bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full">
+                 {count}
+             </span>
+        )}
       </div>
     </div>
   );
 };
 
+// --- TOGGLE COMPONENT ---
 const Toggle = () => {
   const context = useContext(SidebarContext);
   if (!context) throw new Error("Sidebar.Toggle must be used within Sidebar");
   const { isOpen, toggle } = context;
 
   return (
-    <div className="mt-auto p-4 border-t border-white/40 flex justify-end">
+    <div className="mt-auto p-4 border-t border-gray-100/50 flex justify-end">
       <button
         onClick={toggle}
-        className="p-2 rounded-lg cursor-pointer bg-white/40 hover:bg-white/60 text-slate-800 transition-colors shadow-sm"
+        className="p-2 rounded-lg cursor-pointer bg-white/50 hover:bg-white text-slate-500 hover:text-slate-800 transition-all shadow-sm border border-transparent hover:border-gray-200"
       >
         {isOpen ? <FiChevronLeft size={20} /> : <FiChevronRight size={20} />}
       </button>
@@ -118,6 +162,7 @@ const Toggle = () => {
 };
 
 Sidebar.Logo = Logo;
+Sidebar.Compose = Compose; 
 Sidebar.Item = Item;
 Sidebar.Toggle = Toggle;
 
