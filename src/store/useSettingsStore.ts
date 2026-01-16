@@ -6,14 +6,12 @@ interface SettingsStore {
   bgColor: string;
   density: 'comfortable' | 'compact';
   itemsPerPage: number;
-  // New State
   sortBy: 'date-desc' | 'date-asc' | 'unread' | 'starred';
 
   setBgImage: (url: string) => void;
   setBgColor: (color: string) => void;
   setDensity: (density: 'comfortable' | 'compact') => void;
   setItemsPerPage: (count: number) => void;
-  // New Action
   setSortBy: (sort: 'date-desc' | 'date-asc' | 'unread' | 'starred') => void;
 }
 
@@ -24,7 +22,7 @@ export const useSettingsStore = create<SettingsStore>()(
       bgColor: '#b2d5ee',
       density: 'comfortable',
       itemsPerPage: 50,
-      sortBy: 'date-desc', // Default to Newest First
+      sortBy: 'date-desc',
 
       setBgImage: (url) => set({ bgImage: url }),
       setBgColor: (color) => set({ bgColor: color, bgImage: '' }),

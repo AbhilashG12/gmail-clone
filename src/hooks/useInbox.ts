@@ -1,35 +1,45 @@
 import { useState, useMemo, useRef, useEffect } from "react";
 import { type VirtuosoHandle } from "react-virtuoso";
-import { hugeEmails } from "../data/generateEmails";
+import { useEmailStore } from "../store/useEmailStore"; 
 import { useSettingsStore } from "../store/useSettingsStore";
 import { useSearchStore } from "../store/useSearchStore";
 
-export const useInboxLogic = () => {
+export const useInboxLogic = (activeLabel: string) => {
   const [page, setPage] = useState(1);
   const virtuosoRef = useRef<VirtuosoHandle>(null);
 
   const { density, itemsPerPage, sortBy } = useSettingsStore();
   const { query } = useSearchStore();
+  
+  const { emails } = useEmailStore(); 
 
-  // 1. Filter Data
   const filteredEmails = useMemo(() => {
-    if (!query) return hugeEmails;
+    let data = emails;
 
-    const lowerQuery = query.toLowerCase();
-    return hugeEmails.filter((email) =>
-      email.subject.toLowerCase().includes(lowerQuery) ||
-      email.sender.toLowerCase().includes(lowerQuery) ||
-      email.body.toLowerCase().includes(lowerQuery)
-    );
-  }, [query]);
+    if (activeLabel === "starred") {
+      data = data.filter((email) => email.isStarred);
+    } else {
+      data = data.filter((email) => email.label === activeLabel);
+    }
 
-  // 2. Sort Data (The New Feature)
+    if (query) {
+      const lowerQuery = query.toLowerCase();
+      data = data.filter((email) =>
+        email.subject.toLowerCase().includes(lowerQuery) ||
+        email.sender.toLowerCase().includes(lowerQuery) ||
+        email.body.toLowerCase().includes(lowerQuery)
+      );
+    }
+
+    return data;
+  }, [query, activeLabel, emails]); 
+
   const sortedEmails = useMemo(() => {
     const sorted = [...filteredEmails];
     switch (sortBy) {
-      case 'date-desc': // Newest First
+      case 'date-desc': 
         return sorted.sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-      case 'date-asc': // Oldest First
+      case 'date-asc': 
         return sorted.sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
       case 'unread': 
         return sorted.sort((a, b) => (a.isRead === b.isRead ? 0 : a.isRead ? 1 : -1));
@@ -40,19 +50,19 @@ export const useInboxLogic = () => {
     }
   }, [filteredEmails, sortBy]);
 
-  // 3. Reset Page on Change
   const [prevItemsPerPage, setPrevItemsPerPage] = useState(itemsPerPage);
   const [prevQuery, setPrevQuery] = useState(query);
   const [prevSort, setPrevSort] = useState(sortBy);
+  const [prevLabel, setPrevLabel] = useState(activeLabel);
 
-  if (itemsPerPage !== prevItemsPerPage || query !== prevQuery || sortBy !== prevSort) {
+  if (itemsPerPage !== prevItemsPerPage || query !== prevQuery || sortBy !== prevSort || activeLabel !== prevLabel) {
     setPrevItemsPerPage(itemsPerPage);
     setPrevQuery(query);
     setPrevSort(sortBy);
+    setPrevLabel(activeLabel);
     setPage(1);
   }
 
-  // 4. Pagination
   const itemHeight = density === "comfortable" ? 72 : 48;
   const totalItems = sortedEmails.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
@@ -65,7 +75,7 @@ export const useInboxLogic = () => {
 
   useEffect(() => {
     virtuosoRef.current?.scrollTo({ top: 0 });
-  }, [page]);
+  }, [page, activeLabel]);
 
   const handlers = {
     handleNext: () => setPage((p) => Math.min(p + 1, totalPages)),
@@ -81,8 +91,9 @@ export const useInboxLogic = () => {
       itemHeight,
       query,
       sortBy,
+      activeLabel
     },
-    virtuosoRef, // Expose directly to fix ESLint error
+    virtuosoRef,
     handlers,
   };
 };

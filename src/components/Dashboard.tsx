@@ -1,12 +1,13 @@
-import { useState, lazy, Suspense } from "react";
+import { useState } from "react";
 import Layout from "./Layout";
 import Search from "./Search";
-import InboxLoader from "./InboxLoader"; 
-
-const Inbox = lazy(() => import("./Inbox"));
+import Inbox from "./Inbox";      
+import EmailDetail from "./EmailDetail";
+import { useReadingStore } from "../store/useReadingStore";
 
 const Dashboard = () => {
   const [currentTab, setCurrentTab] = useState("inbox");
+  const { selectedEmail } = useReadingStore(); 
 
   return (
     <Layout currentTab={currentTab} onTabChange={setCurrentTab}>
@@ -15,13 +16,16 @@ const Dashboard = () => {
          <Search />
       </div>
 
-      <div className="flex-1 overflow-hidden p-6 w-full"> 
-        <Suspense fallback={<InboxLoader />}>
-          {currentTab === "inbox" && <Inbox />}
-          {currentTab === "sent" && <div className="text-gray-500">Sent Folder</div>}
-          {currentTab === "starred" && <div className="text-gray-500">Starred Messages</div>}
-          {currentTab === "trash" && <div className="text-gray-500">Trash Can</div>}
-        </Suspense>
+      <div className="flex-1 overflow-hidden p-6 w-full h-full"> 
+           {selectedEmail ? (
+               <div className="h-full w-full">
+                   <EmailDetail />
+               </div>
+           ) : (
+               <div className="h-full w-full">
+                   <Inbox currentTab={currentTab} />
+               </div>
+           )}
       </div>
 
     </Layout>

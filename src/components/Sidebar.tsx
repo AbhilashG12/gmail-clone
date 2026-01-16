@@ -37,7 +37,6 @@ export const Sidebar = ({ children, defaultActive = "inbox" }: SidebarProps) => 
   );
 };
 
-// --- LOGO COMPONENT ---
 const Logo = ({ children, icon }: { children: React.ReactNode; icon: React.ReactNode }) => {
   const context = useContext(SidebarContext);
   if (!context) throw new Error("Sidebar.Logo must be used within Sidebar");
@@ -58,7 +57,6 @@ const Logo = ({ children, icon }: { children: React.ReactNode; icon: React.React
   );
 };
 
-// --- NEW: COMPOSE BUTTON ---
 const Compose = ({ onClick }: { onClick?: () => void }) => {
   const context = useContext(SidebarContext);
   if (!context) throw new Error("Sidebar.Compose must be used within Sidebar");
@@ -89,12 +87,11 @@ const Compose = ({ onClick }: { onClick?: () => void }) => {
   );
 };
 
-// --- ITEM COMPONENT ---
 interface ItemProps {
   id: string;
   icon: React.ReactNode;
   label: string;
-  count?: number; // Optional badge count
+  count?: number;
   onClick?: () => void;
 }
 
@@ -143,7 +140,7 @@ const Item = ({ id, icon, label, count, onClick }: ItemProps) => {
   );
 };
 
-// --- TOGGLE COMPONENT ---
+
 const Toggle = () => {
   const context = useContext(SidebarContext);
   if (!context) throw new Error("Sidebar.Toggle must be used within Sidebar");

@@ -4,17 +4,24 @@ import { type Email } from "../data/emails";
 import { FiStar, FiChevronLeft, FiChevronRight, FiFilter } from "react-icons/fi";
 import { useInboxLogic } from "../hooks/useInbox";
 import { useSettingsStore } from "../store/useSettingsStore";
+import { useReadingStore } from "../store/useReadingStore";
+
+interface InboxProps {
+  currentTab: string;
+}
 
 type SortOption = 'date-desc' | 'date-asc' | 'unread' | 'starred';
 
 interface RowProps {
-  email: Email; 
+  email: Email;
+  onClick: () => void;
 }
 
-const Row = memo(({ email }: RowProps) => {
+const Row = memo(({ email, onClick }: RowProps) => {
   return (
     <div className="px-2 py-1 h-full">
       <div 
+        onClick={onClick}
         className={`
           relative flex items-center px-4 h-full w-full rounded-xl cursor-pointer
           border border-transparent
@@ -67,24 +74,27 @@ const Row = memo(({ email }: RowProps) => {
   );
 });
 
-const Inbox = () => {
-  const { state, virtuosoRef, handlers } = useInboxLogic();
+const Inbox = ({ currentTab }: InboxProps) => {
+  const { state, virtuosoRef, handlers } = useInboxLogic(currentTab);
   const { page, totalPages, totalItems, currentData, itemHeight, query, sortBy } = state;
   const { setSortBy } = useSettingsStore(); 
+  const { selectEmail } = useReadingStore();
+
+  const title = currentTab.charAt(0).toUpperCase() + currentTab.slice(1);
 
   return (
     <div className="h-full w-full bg-white/80 backdrop-blur-md rounded-2xl shadow-sm overflow-hidden flex flex-col font-sans border border-white/50">
       
-      {/* HEADER */}
       <div className="px-6 py-4 flex justify-between items-center bg-white/50 border-b border-gray-100/50 z-10 h-16">
         <div className="flex items-center gap-4">
-            <h2 className="text-xl font-bold text-gray-800">{query ? `Search: "${query}"` : "Inbox"}</h2>
+            <h2 className="text-xl font-bold text-gray-800">
+                {query ? `Search in ${title}: "${query}"` : title}
+            </h2>
             <span className="text-xs font-bold text-gray-500 bg-white/50 px-3 py-1 rounded-full uppercase tracking-wide">
              {totalItems} Items
             </span>
         </div>
 
-        {/* SORTING DROPDOWN */}
         <div className="flex items-center gap-2">
             <FiFilter className="text-gray-400" />
             <select 
@@ -100,11 +110,10 @@ const Inbox = () => {
         </div>
       </div>
 
-      {/* LIST */}
       <div className="flex-1 px-2 pt-2">
         {totalItems === 0 ? (
             <div className="flex flex-col items-center justify-center h-full text-gray-500">
-                <p>No emails found matching "{query}"</p>
+                <p>No emails found in {title}</p>
             </div>
         ) : (
             <Virtuoso
@@ -114,7 +123,10 @@ const Inbox = () => {
               totalCount={totalItems}
               itemContent={(_, email) => (
                 <div style={{ height: `${itemHeight}px` }}>
-                  <Row email={email} />
+                  <Row 
+                    email={email} 
+                    onClick={() => selectEmail(email)}
+                  />
                 </div>
               )}
               overscan={20}
@@ -123,7 +135,6 @@ const Inbox = () => {
         )}
       </div>
 
-      {/* FOOTER */}
       <div className="px-6 py-3 bg-white/50 border-t border-gray-100/50 flex justify-between items-center">
         <span className="text-sm text-gray-500 font-medium">
           Page <span className="text-gray-900">{page}</span> of {totalPages || 1}

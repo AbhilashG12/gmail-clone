@@ -28,7 +28,6 @@ const Settings = () => {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        // Convert to Base64 string to save in store
         setBgImage(reader.result as string);
       };
       reader.readAsDataURL(file);
@@ -44,7 +43,7 @@ const Settings = () => {
 
       <div className="p-5 space-y-6">
         
-        {/* 1. SOLID COLORS */}
+       
         <div>
           <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
             <FiDroplet /> Solid Colors
@@ -65,7 +64,7 @@ const Settings = () => {
           </div>
         </div>
 
-        {/* 2. BACKGROUND IMAGES & UPLOAD */}
+      
         <div>
           <div className="flex justify-between items-center mb-3">
              <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
@@ -77,7 +76,7 @@ const Settings = () => {
              >
                 <FiUpload size={12} /> Upload
              </button>
-             {/* Hidden Input */}
+             
              <input 
                ref={fileInputRef} 
                type="file" 
@@ -88,7 +87,7 @@ const Settings = () => {
           </div>
 
           <div className="grid grid-cols-3 gap-2">
-             {/* Preset Images */}
+            
             {THEMES.map((theme) => (
               <button
                 key={theme.name}
@@ -104,7 +103,7 @@ const Settings = () => {
           </div>
         </div>
 
-        {/* 3. DENSITY */}
+      
         <div>
           <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
             <FiLayout /> Density
@@ -121,7 +120,7 @@ const Settings = () => {
           </div>
         </div>
 
-        {/* 4. PAGE SIZE */}
+       
         <div>
           <h4 className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3 flex items-center gap-2">
              <FiList /> Page Size
