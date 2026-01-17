@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from "react";
-import { FiCalendar, FiCheckSquare, FiUser, FiSettings } from "react-icons/fi";
+import { FiCalendar, FiCheckSquare, FiUser, FiSettings, FiInfo } from "react-icons/fi";
 import Profile from "./Profile"; 
 import Calendar from "./Calendar";
 import Notes from "./Notes"; 
 import Settings from "./Settings"; 
+import About from "./About";
 
 const RightSidebar = () => {
   const [activePopup, setActivePopup] = useState<string | null>(null);
@@ -19,6 +20,24 @@ const RightSidebar = () => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if (["INPUT", "TEXTAREA"].includes((e.target as HTMLElement).tagName)) return;
+
+      if (e.key === "i") {
+        e.preventDefault();
+        setActivePopup(prev => prev === "about" ? null : "about");
+      }
+      
+      if (e.key === "Escape") {
+        setActivePopup(null);
+      }
+    };
+
+    window.addEventListener("keydown", handleGlobalKeyDown);
+    return () => window.removeEventListener("keydown", handleGlobalKeyDown);
+  }, []);
+
   const togglePopup = (name: string) => {
     setActivePopup(activePopup === name ? null : name);
   };
@@ -29,6 +48,7 @@ const RightSidebar = () => {
       className="w-16 h-screen bg-white/60 backdrop-blur-xl border-l border-white/40 flex flex-col items-center py-6 shadow-sm z-30 relative transition-colors duration-300"
     >
       <div className="flex flex-col space-y-8">
+        
         <div className="relative">
           <button 
             onClick={() => togglePopup("profile")}
@@ -71,6 +91,22 @@ const RightSidebar = () => {
           {activePopup === "notes" && (
             <div className="absolute right-14 top-0 z-50 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
                <Notes />
+            </div>
+          )}
+        </div>
+
+        <div className="relative">
+          <button 
+            onClick={() => togglePopup("about")}
+            className={`p-2 rounded-full cursor-pointer transition-colors ${activePopup === 'about' ? 'bg-blue-100 text-blue-600' : 'hover:bg-white/50 text-slate-700'}`}
+            title="System Info (i)"
+          >
+            <FiInfo size={20} />
+          </button>
+
+          {activePopup === "about" && (
+            <div className="absolute right-14 top-0 z-50 animate-in fade-in zoom-in-95 duration-200 origin-top-right">
+               <About />
             </div>
           )}
         </div>

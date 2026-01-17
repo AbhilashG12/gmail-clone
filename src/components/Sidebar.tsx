@@ -1,28 +1,24 @@
 import React, { createContext, useContext, useState } from "react";
+import { NavLink } from "react-router-dom";
 import { FiChevronLeft, FiChevronRight, FiEdit3 } from "react-icons/fi"; 
 
 interface SidebarContextType {
   isOpen: boolean;
   toggle: () => void;
-  activeItem: string;
-  setActiveItem: (id: string) => void;
 }
 
 const SidebarContext = createContext<SidebarContextType | undefined>(undefined);
 
 interface SidebarProps {
   children: React.ReactNode;
-  defaultActive?: string;
 }
 
-export const Sidebar = ({ children, defaultActive = "inbox" }: SidebarProps) => {
+export const Sidebar = ({ children }: SidebarProps) => {
   const [isOpen, setIsOpen] = useState(true);
-  const [activeItem, setActiveItem] = useState(defaultActive);
-
   const toggle = () => setIsOpen(!isOpen);
 
   return (
-    <SidebarContext.Provider value={{ isOpen, toggle, activeItem, setActiveItem }}>
+    <SidebarContext.Provider value={{ isOpen, toggle }}>
       <aside
         className={`
           h-screen shadow-2xl z-50
@@ -47,8 +43,8 @@ const Logo = ({ children, icon }: { children: React.ReactNode; icon: React.React
       <div className="text-3xl text-blue-600 min-w-8 flex justify-center">{icon}</div>
       <div
         className={`
-           overflow-hidden transition-all duration-300 ease-in-out
-           ${isOpen ? "max-w-50 opacity-100 ml-3" : "max-w-0 opacity-0 ml-0"}
+            overflow-hidden transition-all duration-300 ease-in-out
+            ${isOpen ? "max-w-50 opacity-100 ml-3" : "max-w-0 opacity-0 ml-0"}
         `}
       >
         <span className="font-bold text-xl whitespace-nowrap text-slate-800 tracking-tight">{children}</span>
@@ -88,29 +84,21 @@ const Compose = ({ onClick }: { onClick?: () => void }) => {
 };
 
 interface ItemProps {
-  id: string;
+  to: string;
   icon: React.ReactNode;
   label: string;
   count?: number;
-  onClick?: () => void;
 }
 
-const Item = ({ id, icon, label, count, onClick }: ItemProps) => {
+const Item = ({ to, icon, label, count }: ItemProps) => {
   const context = useContext(SidebarContext);
   if (!context) throw new Error("Sidebar.Item must be used within Sidebar");
-  const { isOpen, activeItem, setActiveItem } = context;
-
-  const isActive = activeItem === id;
-
-  const handleClick = () => {
-    setActiveItem(id);
-    if (onClick) onClick();
-  };
+  const { isOpen } = context;
 
   return (
-    <div
-      onClick={handleClick}
-      className={`
+    <NavLink
+      to={to}
+      className={({ isActive }) => `
         group flex items-center px-4 py-3 cursor-pointer mx-3 rounded-xl mb-1
         transition-all duration-200 ease-out
         ${isActive 
@@ -119,27 +107,30 @@ const Item = ({ id, icon, label, count, onClick }: ItemProps) => {
         }
       `}
     >
-      <div className={`text-xl flex items-center justify-center transition-transform duration-200 ${isActive ? "scale-110" : "group-hover:scale-110"}`}>
-        {icon}
-      </div>
-      
-      <div
-        className={`
-          flex items-center justify-between overflow-hidden transition-all duration-300 ease-in-out
-          ${isOpen ? "max-w-50 opacity-100 ml-4 flex-1" : "max-w-0 opacity-0 ml-0"}
-        `}
-      >
-        <span className="whitespace-nowrap text-sm">{label}</span>
-        {count !== undefined && count > 0 && (
-             <span className="text-xs font-bold bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full">
-                 {count}
-             </span>
-        )}
-      </div>
-    </div>
+      {({ isActive }) => (
+        <>
+          <div className={`text-xl flex items-center justify-center transition-transform duration-200 ${isActive ? "scale-110" : "group-hover:scale-110"}`}>
+            {icon}
+          </div>
+          
+          <div
+            className={`
+              flex items-center justify-between overflow-hidden transition-all duration-300 ease-in-out
+              ${isOpen ? "max-w-50 opacity-100 ml-4 flex-1" : "max-w-0 opacity-0 ml-0"}
+            `}
+          >
+            <span className="whitespace-nowrap text-sm">{label}</span>
+            {count !== undefined && count > 0 && (
+                 <span className="text-xs font-bold bg-slate-200 text-slate-600 px-2 py-0.5 rounded-full">
+                     {count}
+                 </span>
+            )}
+          </div>
+        </>
+      )}
+    </NavLink>
   );
 };
-
 
 const Toggle = () => {
   const context = useContext(SidebarContext);

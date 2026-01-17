@@ -1,34 +1,33 @@
-import { useMemo } from "react";
 import Sidebar from "./Sidebar"; 
 import RightSidebar from "./RightSidebar"; 
 import ComposeModal from "./ComposeModal";
-import { useComposeStore } from "../store/useComposeStore";
-
-import { FiMail, FiSend, FiStar, FiTrash, FiLayout, FiFileText, FiAlertOctagon } from "react-icons/fi";
+import { FiMail, FiSend, FiStar, FiTrash, FiLayout, FiFileText, FiAlertOctagon, FiUsers, FiTag, FiInfo } from "react-icons/fi";
 import { useSettingsStore } from "../store/useSettingsStore";
+import { useComposeStore } from "../store/useComposeStore";
 import { useEmailStore } from "../store/useEmailStore"; 
 
 interface LayoutProps {
   children: React.ReactNode;
-  currentTab: string;
-  onTabChange: (tab: string) => void;
 }
 
-const Layout = ({ children, currentTab, onTabChange }: LayoutProps) => {
+const Layout = ({ children }: LayoutProps) => {
   const { bgColor, bgImage } = useSettingsStore();
   const { openCompose } = useComposeStore();
-  const { emails } = useEmailStore();
+  const { emails } = useEmailStore(); 
 
-  const counts = useMemo(() => {
-    return {
-      inbox: emails.filter((e) => e.label === "inbox" && !e.isRead).length,
-      sent: emails.filter((e) => e.label === "sent").length,
-      starred: emails.filter((e) => e.isStarred).length,
-      drafts: emails.filter((e) => e.label === "drafts").length,
-      spam: emails.filter((e) => e.label === "spam").length,
-      trash: emails.filter((e) => e.label === "trash").length,
-    };
-  }, [emails]);
+  const counts = {
+    inbox: emails.filter(e => e.label === "inbox").length,
+    starred: emails.filter(e => e.isStarred).length,
+    sent: emails.filter(e => e.label === "sent").length,
+    drafts: emails.filter(e => e.label === "drafts").length,
+    spam: emails.filter(e => e.label === "spam").length,
+    trash: emails.filter(e => e.label === "trash").length,
+
+    primary: emails.filter(e => e.category === "primary").length,
+    social: emails.filter(e => e.category === "social").length,
+    promotions: emails.filter(e => e.category === "promotions").length,
+    updates: emails.filter(e => e.category === "updates").length,
+  };
 
   return (
     <div 
@@ -38,54 +37,33 @@ const Layout = ({ children, currentTab, onTabChange }: LayoutProps) => {
         backgroundImage: bgImage ? `url(${bgImage})` : 'none',
       }}
     >
-      <Sidebar defaultActive={currentTab}>
+      <Sidebar>
         <Sidebar.Logo icon={<FiLayout />}>Gmail Clone</Sidebar.Logo>
         
         <Sidebar.Compose onClick={() => openCompose()} />
 
-        <div className="flex-1 mt-2 overflow-y-auto scrollbar-hide">
-          <Sidebar.Item 
-            id="inbox" 
-            icon={<FiMail />} 
-            label="Inbox" 
-            count={counts.inbox} 
-            onClick={() => onTabChange("inbox")} 
-          />
-          <Sidebar.Item 
-            id="starred" 
-            icon={<FiStar />} 
-            label="Starred" 
-            count={counts.starred}
-            onClick={() => onTabChange("starred")} 
-          />
-          <Sidebar.Item 
-            id="sent" 
-            icon={<FiSend />} 
-            label="Sent" 
-            count={counts.sent}
-            onClick={() => onTabChange("sent")} 
-          />
-          <Sidebar.Item 
-            id="drafts" 
-            icon={<FiFileText />} 
-            label="Drafts" 
-            count={counts.drafts}
-            onClick={() => onTabChange("drafts")} 
-          />
-          <Sidebar.Item 
-            id="spam" 
-            icon={<FiAlertOctagon />} 
-            label="Spam" 
-            count={counts.spam}
-            onClick={() => onTabChange("spam")} 
-          />
-          <Sidebar.Item 
-            id="trash" 
-            icon={<FiTrash />} 
-            label="Trash" 
-            count={counts.trash}
-            onClick={() => onTabChange("trash")} 
-          />
+        <div className="flex-1 overflow-y-auto mt-2 scrollbar-hide">
+    
+          <Sidebar.Item to="/mail/inbox" icon={<FiMail />} label="Inbox" count={counts.inbox} />
+          <Sidebar.Item to="/mail/starred" icon={<FiStar />} label="Starred" count={counts.starred} />
+          <Sidebar.Item to="/mail/sent" icon={<FiSend />} label="Sent" count={counts.sent} />
+          <Sidebar.Item to="/mail/drafts" icon={<FiFileText />} label="Drafts" count={counts.drafts} />
+          
+          <div className="my-2 border-t border-gray-100/50 mx-4" />
+          
+       
+          <div className="px-4 py-2 text-xs font-bold text-gray-400 uppercase tracking-wider">
+            Categories
+          </div>
+          <Sidebar.Item to="/mail/primary" icon={<FiMail />} label="Primary" count={counts.primary} />
+          <Sidebar.Item to="/mail/social" icon={<FiUsers />} label="Social" count={counts.social} />
+          <Sidebar.Item to="/mail/promotions" icon={<FiTag />} label="Promotions" count={counts.promotions} />
+          <Sidebar.Item to="/mail/updates" icon={<FiInfo />} label="Updates" count={counts.updates} />
+
+          <div className="my-2 border-t border-gray-100/50 mx-4" />
+
+          <Sidebar.Item to="/mail/spam" icon={<FiAlertOctagon />} label="Spam" count={counts.spam} />
+          <Sidebar.Item to="/mail/trash" icon={<FiTrash />} label="Trash" count={counts.trash} />
         </div>
         
         <Sidebar.Toggle />

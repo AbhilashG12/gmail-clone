@@ -1,75 +1,91 @@
-# React + TypeScript + Vite
+# 📧 Gmail-Like Email Client (Pure Frontend)
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+This project is a **senior-grade, pure frontend Gmail-like email client** built to demonstrate **real-world frontend engineering skills**, not just UI replication.
 
-Currently, two official plugins are available:
+The application focuses on **architecture, performance, state management, accessibility, and UX depth**, while intentionally avoiding a backend. Authentication is simulated to demonstrate identity management, and all email data is served from a mocked frontend layer to focus on UI engineering challenges.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+![App Preview](public/preview.png)
+![alt text](image.png)
 
-## React Compiler
+---
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
+### 🎯 Project Goals
 
-Note: This will impact Vite dev & build performances.
+* Demonstrate **production-ready frontend architecture**.
+* Separate **data state, UI state, and routing state** cleanly.
+* Handle **large datasets efficiently** (10,000+ items).
+* Build a **keyboard-first, accessible user experience**.
+* Show how real apps behave **without relying on a backend**.
 
-## Expanding the ESLint configuration
+---
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+### 🧠 Key Architectural Principles
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+* **URL = Application State**
+    Routes fully describe what the user is viewing (`/mail/inbox`, `/mail/sent`, `/mail/search?q=query`). Refreshing the page never breaks the context, and deep linking works out of the box.
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+* **Data State vs. UI State**
+    * **Data State:** Email data is treated as immutable, server-like data (mocked in `src/data`).
+    * **UI State:** Transient behavior (selection, focused row, modal visibility) is managed via global stores (`Zustand`).
+    This prevents tight coupling and mirrors real production systems where data comes from an API but UI state is local.
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+* **Performance First**
+    The email list supports **10,000+ emails** using **virtualization** (`react-virtuoso`) to ensure smooth scrolling and instant interaction. We use **Lazy Loading** and **Suspense** to split code chunks and keep the initial bundle size small.
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+* **UX & Polish**
+    We use **Framer Motion** for professional transitions (Splash Screens, Loading States) and **Optimistic UI** patterns to make interactions feel instant.
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+---
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+### 🚀 Features
+
+* **Smart Routing:** Inbox, Sent, Drafts, Trash, and Category folders (Social, Updates, Promotions).
+* **Virtualization:** Efficient rendering of massive email lists.
+* **Keyboard-First:** Vim-style navigation (`j/k`) and bulk actions (`x`, `s`).
+* **Bulk Operations:** Multi-select, Delete, Mark as Read/Unread.
+* **Search:** URL-driven search filtering.
+* **Animations:** Smooth entry transitions and "Hard Loading" states for heavy actions.
+* **Responsiveness:** Fluid layout with a collapsible sidebar.
+
+---
+
+### 🧱 Tech Stack
+
+* **Core:** React 18 + TypeScript
+* **Build:** Vite
+* **Routing:** React Router v6
+* **State Management:** Zustand
+* **Virtualization:** React Virtuoso
+* **Styling:** Tailwind CSS
+* **Animations:** Framer Motion
+* **Testing:** Vitest + React Testing Library
+
+---
+
+### 🎹 Keyboard Shortcuts
+
+This application is designed for power users. You can navigate the entire inbox without a mouse.
+
+| Key | Action |
+| :--- | :--- |
+| **`j`** | Move focus **Down** |
+| **`k`** | Move focus **Up** |
+| **`x`** | **Select/Deselect** the focused email |
+| **`s`** | **Star/Unstar** the focused email |
+| **`Enter`** | **Open** the focused email |
+| **`Esc`** | **Go Back** / Close Modal |
+
+---
+
+### 📌 What This Project Demonstrates
+
+This project is intentionally scoped to the frontend to highlight:
+
+1.  **Architectural thinking** over simple UI cloning.
+2.  **Clean separation of concerns** (Hooks vs. UI vs. Store).
+3.  **Performance engineering** at scale using virtualization.
+4.  **Integration Testing** strategies (testing user flows, not implementation details).
+
+It is designed to reflect how **production email clients work internally**, not just how they look.
+
+---

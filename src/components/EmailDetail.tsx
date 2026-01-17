@@ -1,35 +1,39 @@
-import { useState, useEffect } from "react";
-import { 
-  FiArrowLeft, FiTrash2,  FiStar, FiMoreVertical, 
-  FiCornerUpLeft, FiCornerUpRight, FiDownload, FiPaperclip, FiMail 
-} from "react-icons/fi";
-import { useReadingStore } from "../store/useReadingStore";
+import { useState, useEffect, useCallback } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { FiArrowLeft, FiTrash2, FiStar, FiMoreVertical, FiCornerUpLeft, FiCornerUpRight, FiDownload, FiPaperclip, FiMail } from "react-icons/fi";
 import { useEmailStore } from "../store/useEmailStore";
 import { useComposeStore } from "../store/useComposeStore";
 
 const EmailDetail = () => {
-  const { selectedEmail, clearSelection } = useReadingStore();
+  const { emailId } = useParams<{ emailId: string }>();
+  const navigate = useNavigate();
   const { emails, updateEmail, moveToTrash } = useEmailStore();
   const { openCompose } = useComposeStore();
-  
   const [showMenu, setShowMenu] = useState(false);
 
-  const email = selectedEmail 
-    ? (emails.find(e => e.id === selectedEmail.id) || selectedEmail) 
-    : null;
+  const email = emails.find(e => e.id === emailId);
 
+  const handleBack = useCallback(() => {
+    navigate(".."); 
+  }, [navigate]);
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === "Escape") {
+            handleBack();
+        }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleBack]);
 
   useEffect(() => {
-    
     if (email && !email.isRead) {
       updateEmail(email.id, { isRead: true });
     }
-  }, [email, updateEmail]); 
+  }, [email, updateEmail, emailId]);
 
-  
-  if (!email) return null;
+  if (!email) return <div>Email not found</div>;
 
-  
   const handleReply = () => {
     openCompose({
       to: email.senderEmail,
@@ -47,7 +51,7 @@ const EmailDetail = () => {
 
   const handleDelete = () => {
     moveToTrash(email.id);
-    clearSelection();
+    handleBack();
   };
 
   const toggleStar = () => {
@@ -56,7 +60,7 @@ const EmailDetail = () => {
 
   const markUnread = () => {
     updateEmail(email.id, { isRead: false });
-    clearSelection();
+    handleBack();
   };
 
   const initials = email.sender.slice(0, 1).toUpperCase();
@@ -67,13 +71,12 @@ const EmailDetail = () => {
 
   return (
     <div className="h-full w-full bg-white/95 backdrop-blur-xl rounded-2xl shadow-xl overflow-hidden flex flex-col font-sans border border-white/50 relative">
-      
       <div className="px-6 py-3 flex justify-between items-center bg-white/60 border-b border-gray-100/50 sticky top-0 z-20">
         <div className="flex items-center gap-2">
           <button 
-            onClick={clearSelection}
+            onClick={handleBack}
             className="p-2 hover:bg-gray-200/50 rounded-full transition-colors text-gray-700 mr-2 flex items-center gap-2"
-            title="Back to Inbox"
+            title="Back (Esc)"
           >
             <FiArrowLeft size={20} />
             <span className="text-sm font-medium">Back</span>
@@ -107,8 +110,6 @@ const EmailDetail = () => {
       </div>
 
       <div className="flex-1 overflow-y-auto custom-scrollbar p-8 bg-white">
-        
-       
         <div className="flex flex-col gap-4 mb-8 border-b border-gray-100 pb-6">
            <div className="flex justify-between items-start gap-4">
               <h1 className="text-2xl font-bold text-gray-900 leading-tight">{email.subject}</h1>
@@ -133,12 +134,10 @@ const EmailDetail = () => {
            </div>
         </div>
 
-     =
         <div 
             className="prose prose-slate max-w-none text-gray-800 text-[15px] leading-relaxed whitespace-pre-wrap mb-8"
             dangerouslySetInnerHTML={{ __html: email.body }} 
         />
-        
         
         {email.body.toLowerCase().includes("attachment") && (
             <div className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg w-fit bg-gray-50 mb-8 cursor-pointer hover:bg-gray-100">
@@ -151,7 +150,6 @@ const EmailDetail = () => {
             </div>
         )}
 
-        
         <div className="flex gap-4 mt-8 pt-6 border-t border-gray-100">
            <button onClick={handleReply} className="flex items-center gap-2 border border-gray-300 px-6 py-2 rounded-full text-gray-600 font-medium hover:bg-gray-50 transition-colors shadow-sm">
              <FiCornerUpLeft /> Reply
@@ -160,7 +158,6 @@ const EmailDetail = () => {
              <FiCornerUpRight /> Forward
            </button>
         </div>
-
       </div>
     </div>
   );

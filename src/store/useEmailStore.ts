@@ -1,6 +1,6 @@
 import { create } from 'zustand';
 import { hugeEmails } from '../data/generateEmails';
-import {type Email } from '../data/emails';
+import { type Email } from '../data/emails';
 
 interface EmailStore {
   emails: Email[];
@@ -8,6 +8,9 @@ interface EmailStore {
   saveDraft: (to: string, subject: string, body: string) => void;
   updateEmail: (id: string, updates: Partial<Email>) => void;
   moveToTrash: (id: string) => void;
+  toggleStar: (id: string) => void;
+  bulkDelete: (ids: string[]) => void;
+  bulkMarkRead: (ids: string[], isRead: boolean) => void;
 }
 
 export const useEmailStore = create<EmailStore>((set) => ({
@@ -43,7 +46,6 @@ export const useEmailStore = create<EmailStore>((set) => ({
     }, ...state.emails]
   })),
 
-
   updateEmail: (id, updates) => set((state) => ({
     emails: state.emails.map(email => 
       email.id === id ? { ...email, ...updates } : email
@@ -53,6 +55,24 @@ export const useEmailStore = create<EmailStore>((set) => ({
   moveToTrash: (id) => set((state) => ({
     emails: state.emails.map(email => 
       email.id === id ? { ...email, label: 'trash' } : email
+    )
+  })),
+
+  toggleStar: (id) => set((state) => ({
+    emails: state.emails.map(email => 
+      email.id === id ? { ...email, isStarred: !email.isStarred } : email
+    )
+  })),
+
+  bulkDelete: (ids) => set((state) => ({
+    emails: state.emails.map(email => 
+      ids.includes(email.id) ? { ...email, label: 'trash' } : email
+    )
+  })),
+
+  bulkMarkRead: (ids, isRead) => set((state) => ({
+    emails: state.emails.map(email => 
+      ids.includes(email.id) ? { ...email, isRead } : email
     )
   })),
 }));

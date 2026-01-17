@@ -1,3 +1,5 @@
+export type EmailCategory = "primary" | "social" | "promotions" | "updates";
+
 export interface Email {
   id: string;
   sender: string;
@@ -8,7 +10,7 @@ export interface Email {
   isRead: boolean;
   isStarred: boolean;
   label: "inbox" | "sent" | "trash" | "drafts" | "spam";
-  category?: "primary" | "social" | "promotions" | "updates"; 
+  category?: EmailCategory;
 }
 
 export const dummyEmails: Email[] = [
